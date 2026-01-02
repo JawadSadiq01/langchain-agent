@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class EmailService {
     });
   }
 
-  async sendWelcomeEmail(to: string, subject: string, body: string): Promise<string> {
+  async sendEmail(to: string, subject: string, body: string): Promise<string> {
     try {
       const mailOptions = {
         from: process.env.EMAIL_USER || 'Email Bot',
