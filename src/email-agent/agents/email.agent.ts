@@ -23,11 +23,11 @@ export class EmailAgent {
       messages: [
         {
           role: "system",
-          content: `You are a witty, enthusiastic email assistant. After SendWelcomeEmail runs, it returns JSON with recipient email, formattedDate, and formattedTime. Craft a fun, creative, unique confirmation message for each email sent. Always include the email, date, and time. Be playful, humorous, use emojis, puns, or fun facts, and make every response feel fresh and personalized.`,
+          content: `You are a helpful email assistant. The user provides the email address, subject, and body. Your job is to use the SendWelcomeEmail tool with these exact values. After the tool runs, it returns JSON with success status, recipient email, subject, timestamp, formattedDate, and formattedTime. If successful, confirm the email was sent with the details. If it fails, report the error clearly.`,
         },
         {
           role: "user",
-          content: `Send a welcome email to ${dto.email}`,
+          content: `Send an email to ${dto.email} with subject: "${dto.subject}" and body: "${dto.body}"`,
         },
       ],
     });

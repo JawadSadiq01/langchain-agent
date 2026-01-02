@@ -18,42 +18,45 @@ export class EmailService {
     });
   }
 
-  async sendWelcomeEmail(to: string): Promise<string> {
-    const mailOptions = {
-      from: 'Email Bot',
-      to,
-      subject: 'Welcome to Email Bot 🎉',
-      text: "Welcome! We're glad to have you onboard.",
-      html: `
-        <h2>Welcome 🎉</h2>
-        <p>We're glad to have you onboard.</p>
-      `,
-    };
+  async sendWelcomeEmail(to: string, subject: string, body: string): Promise<string> {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'Email Bot',
+        to,
+        subject,
+        text: body,
+        html: body,
+      };
 
-    await this.transporter.sendMail(mailOptions);
-    
-    const now = new Date();
-    const timestamp = now.toISOString();
-    const formattedDate = now.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    const formattedTime = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      hour12: true 
-    });
+      await this.transporter.sendMail(mailOptions);
+      
+      const now = new Date();
+      const timestamp = now.toISOString();
+      const formattedDate = now.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const formattedTime = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: true 
+      });
 
-    return JSON.stringify({
-      success: true,
-      email: to,
-      timestamp,
-      formattedDate,
-      formattedTime,
-      message: `Welcome email successfully sent to ${to}`
-    });
+      return JSON.stringify({
+        success: true,
+        email: to,
+        subject,
+        timestamp,
+        formattedDate,
+        formattedTime,
+        message: `Email successfully sent to ${to}`
+      });
+    } catch (error) {
+      this.logger.error(`Failed to send email: ${error.message}`, error.stack);
+      throw new Error(`Failed to send email: ${error.message}. Please check EMAIL_USER and EMAIL_PASSWORD environment variables.`);
+    }
   }
 }
