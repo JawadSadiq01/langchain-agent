@@ -3,7 +3,6 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
   private readonly transporter: nodemailer.Transporter;
 
   constructor() {

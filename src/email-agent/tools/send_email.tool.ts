@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import { tool } from 'langchain';
-import { EmailService } from '../helpers/email.helper';
+import { EmailService } from '../../helpers/email.helper';
+import { message } from '../../messages';
 
 const sendEmailSchema = z.object({
   email: z
     .string()
     .email({ message: 'Invalid email address' })
-    .describe('The email address to send the welcome email to'),
+    .describe('The email address to send the email to'),
   subject: z.string().describe('The subject of the email'),
   body: z.string().describe('The body of the email'),
 });
@@ -17,9 +18,8 @@ export const EmailTool = tool(
     return await emailService.sendWelcomeEmail(email, subject, body);
   },
   {
-    name: 'SendWelcomeEmail',
-    description:
-      'Send an email to a specified email address with the provided subject and body. Returns a JSON object with success status, recipient email, subject, timestamp, formatted date and time.',
+    name: 'send_email',
+    description: message.EMAIL_TOOL_DESCRIPTION,
     schema: sendEmailSchema,
   },
 );
