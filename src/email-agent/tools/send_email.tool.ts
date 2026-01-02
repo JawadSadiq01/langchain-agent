@@ -13,7 +13,9 @@ const sendEmailSchema = z.object({
 });
 
 export const EmailTool = tool(
-  async ({ email, subject, body }: z.infer<typeof sendEmailSchema>) => {
+  async (payload: z.infer<typeof sendEmailSchema>) => {
+    const { email, subject, body } = payload;
+
     const emailService = new EmailService();
     return await emailService.sendWelcomeEmail(email, subject, body);
   },
