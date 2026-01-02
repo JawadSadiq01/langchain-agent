@@ -1,9 +1,19 @@
-import * as z from "zod";
+import { z } from "zod";
 import { tool } from "langchain";
 import { EmailService } from '../helpers/email.helper';
-import { SendEmailDto } from "../dto/send-email.dto";
+
+const sendEmailSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }).describe("The email address to send the welcome email to"),
+});
 
 export const EmailTool = tool(
-  async (dto: SendEmailDto) => await new EmailService().sendWelcomeEmail(dto.email),
-  { name: "SendWelcomeEmail", description: "Send a welcome email to a specified email address" }
+  async ({ email }: z.infer<typeof sendEmailSchema>) => {
+    const emailService = new EmailService();
+    return await emailService.sendWelcomeEmail(email);
+  },
+  {
+    name: "SendWelcomeEmail",
+    description: "Send a welcome email to a specified email address",
+    schema: sendEmailSchema,
+  }
 );
