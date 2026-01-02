@@ -5,25 +5,32 @@ import { SendEmailDto } from "../dto/send-email.dto";
 
 export class EmailAgent {
   private readonly model: ChatOpenAI;
+  private readonly agent;
 
   constructor() {
     this.model = new ChatOpenAI({
       modelName: process.env.OPENAI_MODEL || "gpt-4o-mini",
       temperature: 0.8, // Higher temperature for more creative and varied responses
     });
-  }
 
-  async sendEmail(dto: SendEmailDto) {
-    const agent = createAgent({
+    this.agent = createAgent({
       model: this.model,
       tools: [EmailTool],
     });
+  }
 
-    const result = await agent.invoke({
+  async sendEmail(dto: SendEmailDto) {
+    const result = await this.agent.invoke({
       messages: [
         {
           role: "system",
-          content: `You are a helpful email assistant. The user provides the email address, subject, and body. Your job is to use the SendWelcomeEmail tool with these exact values. After the tool runs, it returns JSON with success status, recipient email, subject, timestamp, formattedDate, and formattedTime. If successful, confirm the email was sent with the details. If it fails, report the error clearly.`,
+          content: `You are a helpful email assistant. 
+          The user provides the email address, subject, and body. 
+          Your job is to use the SendWelcomeEmail tool with these exact values. 
+          After the tool runs, it returns JSON with success status, recipient email, 
+          subject, timestamp, formattedDate, and formattedTime. 
+          If successful, confirm the email was sent with the details. 
+          If it fails, report the error clearly.`,
         },
         {
           role: "user",
@@ -31,7 +38,6 @@ export class EmailAgent {
         },
       ],
     });
-
 
     return typeof result.messages.at(-1)?.content === "string"
       ? result.messages.at(-1)!.content
