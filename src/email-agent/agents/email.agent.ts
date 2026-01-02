@@ -19,11 +19,11 @@ export class EmailAgent {
       tools: [EmailTool],
     });
 
-    const result = await agent.invoke({
+    const stream = await agent.stream({
       messages: [
         {
           role: "system",
-          content: `You are a helpful email assistant. The user provides the email address, subject, and body. Your job is to use the SendWelcomeEmail tool with these exact values. After the tool runs, it returns JSON with success status, recipient email, subject, timestamp, formattedDate, and formattedTime. If successful, confirm the email was sent with the details. If it fails, report the error clearly.`,
+          content: `You are a helpful email assistant. The user provides the email address, subject, and body. Your job is to use the SendWelcomeEmail tool with these exact values. After the tool runs, you must provide a handsome and engaging response to the user.`,
         },
         {
           role: "user",
@@ -32,9 +32,22 @@ export class EmailAgent {
       ],
     });
 
+    let finalResponse = '';
+    for await (const chunk of stream) {
+      for (const state of Object.values(chunk)) {
+        const messages = (state as any).messages;
+        if (messages && messages.length > 0) {
+          const lastMessage = messages[messages.length - 1];
+          if (lastMessage?.content) {
+            finalResponse = typeof lastMessage.content === 'string' 
+              ? lastMessage.content 
+              : JSON.stringify(lastMessage.content);
+            console.log('Messages:', messages);
+          }
+        }
+      }
+    }
 
-    return typeof result.messages.at(-1)?.content === "string"
-      ? result.messages.at(-1)!.content
-      : JSON.stringify(result.messages.at(-1)?.content);
+    return finalResponse || 'Email sent successfully';
   }
 }
