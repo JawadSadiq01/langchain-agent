@@ -31,7 +31,29 @@ export class EmailService {
     };
 
     await this.transporter.sendMail(mailOptions);
+    
+    const now = new Date();
+    const timestamp = now.toISOString();
+    const formattedDate = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const formattedTime = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
 
-    return `Welcome email sent to ${to}`;
+    return JSON.stringify({
+      success: true,
+      email: to,
+      timestamp,
+      formattedDate,
+      formattedTime,
+      message: `Welcome email successfully sent to ${to}`
+    });
   }
 }

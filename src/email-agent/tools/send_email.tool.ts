@@ -13,7 +13,7 @@ export const EmailTool = tool(
   },
   {
     name: "SendWelcomeEmail",
-    description: "Send a welcome email to a specified email address",
+    description: "Send a welcome email to a specified email address. Returns a JSON object with success status, recipient email, timestamp, formatted date and time.",
     schema: sendEmailSchema,
   }
 );

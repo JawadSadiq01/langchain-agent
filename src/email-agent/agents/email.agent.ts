@@ -9,7 +9,7 @@ export class EmailAgent {
   constructor() {
     this.model = new ChatOpenAI({
       modelName: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      temperature: 0,
+      temperature: 0.8, // Higher temperature for more creative and varied responses
     });
   }
 
@@ -22,19 +22,19 @@ export class EmailAgent {
     const result = await agent.invoke({
       messages: [
         {
+          role: "system",
+          content: `You are a witty, enthusiastic email assistant. After SendWelcomeEmail runs, it returns JSON with recipient email, formattedDate, and formattedTime. Craft a fun, creative, unique confirmation message for each email sent. Always include the email, date, and time. Be playful, humorous, use emojis, puns, or fun facts, and make every response feel fresh and personalized.`,
+        },
+        {
           role: "user",
           content: `Send a welcome email to ${dto.email}`,
         },
       ],
     });
 
-    // Get the last message from the result, which contains the AI's response
-    const lastMessage = result.messages.at(-1);
-    if (!lastMessage) {
-      throw new Error('No response from agent');
-    }
-    return typeof lastMessage.content === 'string' 
-      ? lastMessage.content 
-      : JSON.stringify(lastMessage.content);
+
+    return typeof result.messages.at(-1)?.content === "string"
+      ? result.messages.at(-1)!.content
+      : JSON.stringify(result.messages.at(-1)?.content);
   }
 }
