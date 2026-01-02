@@ -55,8 +55,7 @@ export class EmailService {
         message: `Email successfully sent to ${to}`
       });
     } catch (error) {
-      this.logger.error(`Failed to send email: ${error.message}`, error.stack);
-      throw new Error(`Failed to send email: ${error.message}. Please check EMAIL_USER and EMAIL_PASSWORD environment variables.`);
+      throw new Error(`Failed to send email: ${error.message}`, error.stack);
     }
   }
 }
