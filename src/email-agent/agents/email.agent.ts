@@ -10,7 +10,7 @@ export class EmailAgent {
   constructor() {
     this.model = new ChatOpenAI({
       modelName: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      temperature: 0.8, // Higher temperature for more creative and varied responses
+      temperature: 0.3, // Higher temperature for more creative and varied responses
     });
 
     this.agent = createAgent({
@@ -20,15 +20,17 @@ export class EmailAgent {
   }
 
   async sendEmail(dto: SendEmailDto) {
+    const { email, name, subject = '', body = '', instructions = '' } = dto;
+
     const result = await this.agent.invoke({
       messages: [
         {
           role: "system",
-          content: message.EMAIL_PROMPT,
+          content: message.EMAIL_PROMPT(instructions),
         },
         {
           role: "user",
-          content: message.EMAIL_USER_MESSAGE(dto.email, dto.subject, dto.body),
+          content: message.EMAIL_USER_MESSAGE(email, name, subject, body),
         },
       ],
     });

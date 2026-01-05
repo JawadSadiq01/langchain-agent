@@ -6,7 +6,7 @@ import { EmailAgent } from './agents/email.agent';
 export class EmailAgentService {
   constructor(private readonly emailAgent: EmailAgent) {}
 
-  async sendWelcomeEmail(dto: SendEmailDto) {
+  async sendEmail(dto: SendEmailDto) {
     return await this.emailAgent.sendEmail(dto);
   }
 }

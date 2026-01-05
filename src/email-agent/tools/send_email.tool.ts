@@ -17,7 +17,7 @@ export const EmailTool = tool(
     const { email, subject, body } = payload;
 
     const emailService = new EmailService();
-    return await emailService.sendWelcomeEmail(email, subject, body);
+    return await emailService.sendEmail(email, subject, body);
   },
   {
     name: 'send_email',
