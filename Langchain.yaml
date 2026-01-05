@@ -1,0 +1,86 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Langchain Bot
+meta:
+  id: wrk_0a0e66a2f0b44ea791d73468f505743f
+  created: 1767348382179
+  modified: 1767348382179
+  description: ""
+collection:
+  - url: http://localhost:3000/email-agent/send
+    name: Send Email
+    meta:
+      id: req_767d1ac9db55451c92b0853ddbea70f8
+      created: 1767348389554
+      modified: 1767597790395
+      isPrivate: false
+      description: ""
+      sortKey: -1767348389554
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+         "email": "muhammad.adil@consultancyoutfit.co.uk",
+        	"name": "Adil Malik",
+        	"instructions": "Write a sick email for a leave request"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/web/search
+    name: Web Search
+    meta:
+      id: req_f15e4a889fab400abf5c0b7d2a6a19bd
+      created: 1767597771433
+      modified: 1767597885189
+      isPrivate: false
+      description: ""
+      sortKey: -1767597771433
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        "query": "What is the gold rate in Pakistan"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_b55d106c83fec8f1335f3115d11ab2c489d13032
+    created: 1767348382182
+    modified: 1767348382182
+environments:
+  name: Base Environment
+  meta:
+    id: env_b55d106c83fec8f1335f3115d11ab2c489d13032
+    created: 1767348382181
+    modified: 1767348382181
+    isPrivate: false
