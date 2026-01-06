@@ -1,4 +1,4 @@
-import { createAgent } from "langchain";
+import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 import { EmailTool } from "../tools/send_email.tool";
 import { SendEmailDto } from "../dto/send-email.dto";
@@ -16,6 +16,16 @@ export class EmailAgent {
     this.agent = createAgent({
       model: this.model,
       tools: [EmailTool],
+      middleware: [
+        humanInTheLoopMiddleware({
+          interruptOn: {
+            EmailTool: {
+              allowedDecisions: ["approve", "edit", "reject"]
+            },
+            readEmailTool: false
+          }
+        })
+      ]
     });
   }
 
