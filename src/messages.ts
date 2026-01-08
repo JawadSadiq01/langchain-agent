@@ -20,13 +20,14 @@ export const message = {
   - Subject line in the body (it's already in the subject field)
   - "Dear [Name]" unless a specific recipient name is provided`,
 
-  EMAIL_USER_MESSAGE: (email: string, name: string, subject: string, body: string) =>
+  EMAIL_USER_MESSAGE: (email: string, name: string, subject: string, body: string, senderName: string) =>
   `Compose a professional email with the following details:
     
   To: ${email}
   Subject: ${subject}
   Name: Dear ${name},
   Context/Purpose: ${body}
+  Sender Name: ${senderName}
 
   Write a complete, ready-to-send email that fulfills this purpose.`,
 

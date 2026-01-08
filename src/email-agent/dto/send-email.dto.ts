@@ -21,4 +21,8 @@ export class SendEmailDto {
   @IsString()
   @IsOptional()
   instructions?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  senderName: string;
 }
