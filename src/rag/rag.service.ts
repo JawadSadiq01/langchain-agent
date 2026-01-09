@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getVectorStore } from './utils/vector-store';
 import { ChatOpenAI } from '@langchain/openai';
+import { ragConfig } from '../config/rag.config';
 
 @Injectable()
 export class RagService {
@@ -9,26 +10,37 @@ export class RagService {
   constructor() {
     this.model = new ChatOpenAI({
       modelName: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0.7,
+      temperature: ragConfig.llm.temperature,
     });
   }
 
   /**
    * Query the RAG system with a question
    * @param query The user's question
-   * @param k Number of documents to retrieve (default: 4)
+   * @param k Number of documents to retrieve (default: from config)
    */
-  async query(query: string, k: number = 4) {
+  async query(query: string, k?: number) {
     const vectorStore = await getVectorStore();
 
-    // Create retriever
-    const retriever = vectorStore.asRetriever({
-      searchType: "mmr",
-      k,            // final docs returned
-      searchKwargs: {
-        fetchK: 20, // candidate pool
-      },
-    });
+    // Use provided k or default from config
+    const documentsToRetrieve = k || ragConfig.retriever.defaultK;
+
+    // Build retriever configuration from config
+    const retrieverConfig: any = {
+      searchType: ragConfig.retriever.searchType,
+      k: documentsToRetrieve,
+    };
+
+    // Add MMR-specific parameters if using MMR search
+    if (ragConfig.retriever.searchType === 'mmr') {
+      retrieverConfig.searchKwargs = {
+        fetchK: ragConfig.retriever.fetchK,
+        lambda: ragConfig.retriever.lambda,
+      };
+    }
+
+    // Create retriever with configurable options
+    const retriever = vectorStore.asRetriever(retrieverConfig);
 
     // Retrieve relevant documents
     const docs = await retriever.invoke(query);
