@@ -23,7 +23,11 @@ export class RagService {
 
     // Create retriever
     const retriever = vectorStore.asRetriever({
-      k, // Number of documents to retrieve
+      searchType: "mmr",
+      k,            // final docs returned
+      searchKwargs: {
+        fetchK: 20, // candidate pool
+      },
     });
 
     // Retrieve relevant documents
@@ -32,20 +36,19 @@ export class RagService {
     // Build context from retrieved documents
     const context = docs.map((doc: any) => doc.pageContent).join('\n\n');
 
-    // Create prompt with context
-    const prompt = `You are a helpful assistant that answers questions based on the provided context.
-
-Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-Context:
-${context}
-
-Question: ${query}
-
-Answer:`;
 
     // Get answer from model
-    const response = await this.model.invoke(prompt);
+    const response = await this.model.invoke([
+      {
+        role: "system",
+        content:
+          "You are a helpful assistant that answers questions strictly using the provided context. If the answer is not in the context, say you don't know.",
+      },
+      {
+        role: "user",
+        content: `Context:\n${context}\n\nQuestion: ${query}`,
+      },
+    ]);
 
     return {
       answer:
