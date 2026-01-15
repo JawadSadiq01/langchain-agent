@@ -1,16 +1,17 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { getVectorStore } from './vector-store';
 import { textSplitter } from './text-splitter';
-
-// pdf-parse is a CommonJS module - it's a function, not a class
-const pdfParse = require('pdf-parse');
+import pdfParse from 'pdf-parse';
 
 @Injectable()
 export class DocumentIngestionService {
   /**
    * Add a single PDF document to the vector store
-   * @param file PDF file buffer
-   * @param metadata Optional metadata for the document
+   * Supports large files by batching document ingestion
    */
   async addPdfDocument(
     file: Express.Multer.File,
@@ -23,30 +24,44 @@ export class DocumentIngestionService {
     this.addMetadataToChunks(docs, file.originalname, metadata);
 
     const vectorStore = await getVectorStore();
-    await vectorStore.addDocuments(docs);
+    
+    // For large document sets, batch the insertion to avoid memory issues
+    const batchSize = 100;
+    for (let i = 0; i < docs.length; i += batchSize) {
+      const batch = docs.slice(i, i + batchSize);
+      await vectorStore.addDocuments(batch);
+    }
 
-    return { success: true, count: docs.length };
+    return {
+      success: true,
+      count: docs.length,
+      fileName: file.originalname,
+    };
   }
 
   /**
-   * Validate that the uploaded file is a PDF
+   * Validate uploaded file (PDF type only, no size restrictions)
    */
   private validatePdfFile(file: Express.Multer.File): void {
     if (file.mimetype !== 'application/pdf') {
-      throw new BadRequestException(`File ${file.originalname} is not a PDF`);
+      throw new BadRequestException(
+        `File ${file.originalname} is not a PDF`,
+      );
     }
   }
 
   /**
-   * Extract text content from PDF buffer
+   * Extract text from PDF buffer
    */
   private async extractTextFromPdf(buffer: Buffer): Promise<string> {
     try {
       const pdfData = await pdfParse(buffer);
       const text = pdfData.text?.trim();
 
-      if (!text || text.length === 0) {
-        throw new BadRequestException('No text content found in PDF');
+      if (!text) {
+        throw new BadRequestException(
+          'No readable text found in PDF',
+        );
       }
 
       return text;
@@ -54,6 +69,7 @@ export class DocumentIngestionService {
       if (error instanceof BadRequestException) {
         throw error;
       }
+
       throw new InternalServerErrorException(
         `Failed to extract text from PDF: ${(error as Error).message}`,
       );
@@ -61,24 +77,26 @@ export class DocumentIngestionService {
   }
 
   /**
-   * Split text into chunks using the text splitter
+   * Split text into vector-friendly chunks
    */
   private async splitTextIntoChunks(text: string) {
     return textSplitter.createDocuments([text]);
   }
 
   /**
-   * Add metadata to document chunks
+   * Attach metadata to all chunks
    */
   private addMetadataToChunks(
     docs: any[],
     fileName: string,
     metadata?: Record<string, any>,
   ): void {
-    docs.forEach((doc) => {
+    docs.forEach((doc, index) => {
       doc.metadata = {
         ...doc.metadata,
         fileName,
+        chunkIndex: index,
+        uploadedAt: new Date().toISOString(),
         ...metadata,
       };
     });

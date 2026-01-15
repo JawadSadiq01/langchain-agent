@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getVectorStore } from './utils/vector-store';
-import { ChatOpenAI } from '@langchain/openai';
 import { ragConfig } from '../config/rag.config';
+import { ChatOpenAI } from '@langchain/openai';
 
 @Injectable()
 export class RagService {
@@ -17,37 +17,26 @@ export class RagService {
   /**
    * Query the RAG system with a question
    * @param query The user's question
-   * @param k Number of documents to retrieve (default: from config)
+   * @param k Number of documents to retrieve (default from config)
    */
-  async query(query: string, k?: number) {
+  async query(query: string, k: number = ragConfig.retriever.defaultK) {
     const vectorStore = await getVectorStore();
 
-    // Use provided k or default from config
-    const documentsToRetrieve = k || ragConfig.retriever.defaultK;
-
-    // Build retriever configuration from config
-    const retrieverConfig: any = {
+    // Create retriever with configurable parameters
+    const retriever = vectorStore.asRetriever({
       searchType: ragConfig.retriever.searchType,
-      k: documentsToRetrieve,
-    };
-
-    // Add MMR-specific parameters if using MMR search
-    if (ragConfig.retriever.searchType === 'mmr') {
-      retrieverConfig.searchKwargs = {
-        fetchK: ragConfig.retriever.fetchK,
-        lambda: ragConfig.retriever.lambda,
-      };
-    }
-
-    // Create retriever with configurable options
-    const retriever = vectorStore.asRetriever(retrieverConfig);
+      k,            // final docs returned
+      searchKwargs: {
+        fetchK: ragConfig.retriever.fetchK, // candidate pool
+        lambda: ragConfig.retriever.lambda, // MMR diversity
+      },
+    });
 
     // Retrieve relevant documents
     const docs = await retriever.invoke(query);
 
-    // Build context from retrieved documents
-    const context = docs.map((doc: any) => doc.pageContent).join('\n\n');
-
+    // Build context with token limit awareness
+    const context = this.buildContext(docs);
 
     // Get answer from model
     const response = await this.model.invoke([
@@ -72,5 +61,35 @@ export class RagService {
         metadata: doc.metadata,
       })),
     };
+  }
+
+  /**
+   * Build context from documents while managing token/character limits
+   * Progressively adds documents until reaching the limit
+   */
+  private buildContext(docs: any[]): string {
+    const maxContextChars = 10000; // Limit to ~2500 tokens approximately
+    let context = '';
+    let docCount = 0;
+
+    for (const doc of docs) {
+      const docText = doc.pageContent;
+      const separator = context ? '\n\n---\n\n' : '';
+      const potentialContext = context + separator + docText;
+
+      if (potentialContext.length <= maxContextChars) {
+        context = potentialContext;
+        docCount++;
+      } else {
+        // Try to fit partial content if we have space
+        const remainingSpace = maxContextChars - context.length - separator.length - 100;
+        if (remainingSpace > 500 && docCount > 0) {
+          context += separator + docText.substring(0, remainingSpace) + '\n...[truncated]';
+        }
+        break;
+      }
+    }
+
+    return context || docs[0]?.pageContent || '';
   }
 }
